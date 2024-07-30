@@ -14,4 +14,4 @@ __pycache__/
 *.lnk
 
 # Ignore local settings files
-settings.json
+settings.*
