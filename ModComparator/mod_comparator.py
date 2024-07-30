@@ -1,64 +1,72 @@
-import tkinter as tk
-from tkinter import filedialog, messagebox
-import json
 import os
+import json
+import tkinter as tk
+from tkinter import ttk, messagebox, filedialog
 import re
 
 class FileDifferenceFinder(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("File Difference Finder")
-        self.geometry("450x550")
+        self.geometry("450x600")
         self.resizable(False, False)
         self.create_widgets()
         self.load_settings()
 
     def create_widgets(self):
+        # Create Notebook
+        notebook = ttk.Notebook(self)
+        notebook.pack(fill=tk.BOTH, expand=True)
+
+        # Main Tab
+        main_tab = ttk.Frame(notebook)
+        notebook.add(main_tab, text="Main")
+
         # Input File A
-        self.label_file_a = tk.Label(self, text="Input Text File A:")
+        self.label_file_a = tk.Label(main_tab, text="Input Text File A:")
         self.label_file_a.pack(pady=5)
-        self.entry_file_a = tk.Entry(self, width=50)
+        self.entry_file_a = tk.Entry(main_tab, width=50)
         self.entry_file_a.pack(pady=5)
-        self.button_browse_a = tk.Button(self, text="Browse", command=self.browse_file_a)
+        self.button_browse_a = tk.Button(main_tab, text="Browse", command=self.browse_file_a)
         self.button_browse_a.pack(pady=5)
 
         # Input File B
-        self.label_file_b = tk.Label(self, text="Input Text File B:")
+        self.label_file_b = tk.Label(main_tab, text="Input Text File B:")
         self.label_file_b.pack(pady=5)
-        self.entry_file_b = tk.Entry(self, width=50)
+        self.entry_file_b = tk.Entry(main_tab, width=50)
         self.entry_file_b.pack(pady=5)
-        self.button_browse_b = tk.Button(self, text="Browse", command=self.browse_file_b)
+        self.button_browse_b = tk.Button(main_tab, text="Browse", command=self.browse_file_b)
         self.button_browse_b.pack(pady=5)
 
         # Output Directory
-        self.label_output_dir = tk.Label(self, text="Output Directory:")
+        self.label_output_dir = tk.Label(main_tab, text="Output Directory:")
         self.label_output_dir.pack(pady=5)
-        self.entry_output_dir = tk.Entry(self, width=50)
+        self.entry_output_dir = tk.Entry(main_tab, width=50)
         self.entry_output_dir.pack(pady=5)
-        self.button_browse_output_dir = tk.Button(self, text="Browse", command=self.browse_output_dir)
+        self.button_browse_output_dir = tk.Button(main_tab, text="Browse", command=self.browse_output_dir)
         self.button_browse_output_dir.pack(pady=5)
 
         # Output File Name
-        self.label_output_name = tk.Label(self, text="Output File Name:")
+        self.label_output_name = tk.Label(main_tab, text="Output File Name:")
         self.label_output_name.pack(pady=5)
-        self.entry_output_name = tk.Entry(self, width=50)
+        self.entry_output_name = tk.Entry(main_tab, width=50)
         self.entry_output_name.pack(pady=5)
 
         # Comparison Option
         self.comparison_var = tk.StringVar(value="differences")
-        self.radio_differences = tk.Radiobutton(self, text="Find Differences", variable=self.comparison_var, value="differences")
+        self.radio_differences = tk.Radiobutton(main_tab, text="Find Differences", variable=self.comparison_var, value="differences")
         self.radio_differences.pack(pady=5)
-        self.radio_matches = tk.Radiobutton(self, text="Find Matches", variable=self.comparison_var, value="matches")
+        self.radio_matches = tk.Radiobutton(main_tab, text="Find Matches", variable=self.comparison_var, value="matches")
         self.radio_matches.pack(pady=5)
 
         # Exclusion List
-        self.label_exclusions = tk.Label(self, text="Exclusions (comma-separated):")
+        self.label_exclusions = tk.Label(main_tab, text="Exclusions (comma-separated):")
         self.label_exclusions.pack(pady=5)
-        self.entry_exclusions = tk.Entry(self, width=50)
+        self.entry_exclusions = tk.Entry(main_tab, width=50)
         self.entry_exclusions.pack(pady=5)
 
         # Process Button
-        self.button_process = tk.Button(self, text="Process", command=self.process_files)
+        self.button_process = tk.Button(main_tab, text="Process", command=self.process_files)
         self.button_process.pack(pady=20)
 
     def browse_file_a(self):
@@ -83,11 +91,12 @@ class FileDifferenceFinder(tk.Tk):
         try:
             with open("settings.json", "r") as file:
                 settings = json.load(file)
-                self.entry_file_a.insert(0, settings.get("file_a", ""))
-                self.entry_file_b.insert(0, settings.get("file_b", ""))
-                self.entry_output_dir.insert(0, settings.get("output_dir", ""))
-                self.entry_output_name.insert(0, settings.get("output_name", ""))
+                self.entry_file_a.insert(tk.END, settings.get("file_a", ""))
+                self.entry_file_b.insert(tk.END, settings.get("file_b", ""))
+                self.entry_output_dir.insert(tk.END, settings.get("output_dir", ""))
+                self.entry_output_name.insert(tk.END, settings.get("output_name", ""))
         except FileNotFoundError:
+            print("Settings file not found.")
             pass
 
     def save_settings(self):
@@ -97,8 +106,11 @@ class FileDifferenceFinder(tk.Tk):
             "output_dir": self.entry_output_dir.get(),
             "output_name": self.entry_output_name.get()
         }
-        with open("settings.json", "w") as file:
-            json.dump(settings, file)
+        try:
+            with open("settings.json", "w") as file:
+                json.dump(settings, file)
+        except IOError as e:
+            messagebox.showerror("Error", f"Failed to save settings: {e}")
 
     def process_files(self):
         file_a_path = self.entry_file_a.get()
