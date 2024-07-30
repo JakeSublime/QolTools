@@ -12,3 +12,6 @@ __pycache__/
 
 # Ignore Shortcuts
 *.lnk
+
+# Ignore local settings files
+settings.*
